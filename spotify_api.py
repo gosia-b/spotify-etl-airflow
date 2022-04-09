@@ -37,11 +37,6 @@ def get_recently_played(limit: int, after: datetime, before: datetime) -> pd.Dat
     """
     Documentation: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played
 
-    Args:
-        limit: the maximum number of items to return
-        after: returns all items after this date
-        before: returns all items before this date
-
     Returns:
         Tracks from the current user's recently played tracks, in a form of pandas DataFrame with the following columns:
         - played_at
@@ -86,24 +81,3 @@ def get_recently_played(limit: int, after: datetime, before: datetime) -> pd.Dat
     logging.info("Data extracted from Spotify API")
 
     return song_df
-
-
-def check_if_valid_data(df: pd.DataFrame) -> bool:
-    """
-    Validation of data received from Spotify API
-    """
-
-    # Check if DataFrame is not empty
-    if df.empty:
-        logging.info("No songs downloaded. Finishing execution")
-        return False
-
-    # Primary key check
-    if not pd.Series(df["played_at"]).is_unique:
-        raise Exception("Primary key check is violated")
-
-    # Check for nulls
-    if df.isnull().values.any():
-        raise Exception("Null values found")
-
-    return True
