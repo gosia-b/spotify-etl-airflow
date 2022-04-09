@@ -20,7 +20,7 @@ def refresh_token() -> str:
     return token
 
 
-def get_headers(token):
+def get_headers(token: str) -> dict:
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -33,17 +33,10 @@ def date_to_unix_timestamp_milliseconds(date: datetime) -> int:
     return int(date.timestamp()) * 1000
 
 
-def get_recently_played(limit: int, after: datetime, before: datetime) -> pd.DataFrame:
+def get_recently_played(limit: int, after: datetime) -> pd.DataFrame:
     """
     Documentation: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played
-
-    Returns:
-        Tracks from the current user's recently played tracks, in a form of pandas DataFrame with the following columns:
-        - played_at
-        - song_name
-        - artist
-        - album_name
-        - album_year
+    Returns a DataFrame with tracks played between "after" and "before" datetime
     """
 
     after = date_to_unix_timestamp_milliseconds(after)
@@ -61,6 +54,8 @@ def get_recently_played(limit: int, after: datetime, before: datetime) -> pd.Dat
     artist = []
     album_name = []
     album_year = []
+    explicit = []
+    popularity = []
 
     for song in data["items"]:
         played_at.append(parser.parse(song["played_at"]))
@@ -68,16 +63,21 @@ def get_recently_played(limit: int, after: datetime, before: datetime) -> pd.Dat
         artist.append(song["track"]["album"]["artists"][0]["name"])
         album_name.append(song["track"]["album"]["name"])
         album_year.append(song["track"]["album"]["release_date"][:4])
+        explicit.append(song["track"]["explicit"])
+        popularity.append(song["track"]["popularity"])
 
     song_dict = {
         "played_at": played_at,
         "song_name": song_name,
         "artist": artist,
         "album_name": album_name,
-        "album_year": album_year
+        "album_year": album_year,
+        "explicit": explicit,
+        "popularity": popularity
     }
 
     song_df = pd.DataFrame(song_dict)
+
     logging.info("Data extracted from Spotify API")
 
     return song_df
