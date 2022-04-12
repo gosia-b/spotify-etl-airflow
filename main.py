@@ -1,6 +1,6 @@
 import logging
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from dateutil import parser
@@ -29,20 +29,16 @@ def get_headers(token: str) -> dict:
     return headers
 
 
-def date_to_unix_timestamp_milliseconds(date: datetime) -> int:
-    return int(date.timestamp()) * 1000
-
-
 def get_recently_played(limit: int, after: datetime) -> pd.DataFrame:
     """
     Documentation: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played
     Returns a DataFrame with tracks played between "after" and "before" datetime
     """
 
-    after = date_to_unix_timestamp_milliseconds(after)
+    after_unix_timestamp = int(after.timestamp()) * 1000  # in milliseconds
 
     # Get data from Spotify API
-    url = f"https://api.spotify.com/v1/me/player/recently-played?limit={limit}&after={after}"
+    url = f"https://api.spotify.com/v1/me/player/recently-played?limit={limit}&after={after_unix_timestamp}"
     token = refresh_token()
     headers = get_headers(token)
     r = requests.get(url, headers=headers)
@@ -81,3 +77,14 @@ def get_recently_played(limit: int, after: datetime) -> pd.DataFrame:
     logging.info("Data extracted from Spotify API")
 
     return song_df
+
+
+def get_last_24h_data():
+    limit = 50
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+    song_df = get_recently_played(limit=limit, after=yesterday)
+    print(song_df)
+
+
+get_last_24h_data()
