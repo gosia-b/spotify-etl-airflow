@@ -1,5 +1,5 @@
 # Motivation
-I'd like to collect my Spotify history for analysis. Unfortunately, the Spotify API allows only to get 50 recently played tracks.
+I'd like to collect my Spotify history for analysis. Unfortunately, the Spotify API allows to get only 50 recently played tracks.
 So in this project I use Airflow to daily collect data from the previous day and save it to a SQLite database.  
 
 <p align="center">
