@@ -1,11 +1,14 @@
 import logging
+import sqlite3
+
 import requests
 from datetime import datetime, timedelta
 
 import pandas as pd
 from dateutil import parser
+import sqlalchemy
 
-from config import REFRESH_TOKEN, AUTHORIZATION_ENCODED
+from config import REFRESH_TOKEN, AUTHORIZATION_ENCODED, DATABASE
 
 
 def refresh_token() -> str:
@@ -79,12 +82,46 @@ def get_recently_played(limit: int, after: datetime) -> pd.DataFrame:
     return song_df
 
 
-def get_last_24h_data():
+def save_to_database(df: pd.DataFrame) -> None:
+    # Connect to the database
+    database_location = f"sqlite:///{DATABASE}"
+    engine = sqlalchemy.create_engine(database_location)
+    con = sqlite3.connect(DATABASE)
+    cursor = con.cursor()
+    logging.info("Opened database successfully")
+
+    # Create table if needed
+    query_create_table = """
+    CREATE TABLE IF NOT EXISTS played_tracks(
+        played_at TIMESTAMP,
+        song_name VARCHAR(200),
+        artist VARCHAR(200),
+        album_name VARCHAR(200),
+        album_year INT(4),
+        explicit BOOL,
+        popularity INT(3),
+        CONSTRAINT primary_key_constraint PRIMARY KEY (played_at)
+    )
+    """
+    cursor.execute(query_create_table)
+    logging.info("Table created or already exists")
+
+    # Append dataframe to the database table
+    for i, _ in df.iterrows():
+        try:
+            df.iloc[i:i + 1].to_sql("played_tracks", con=engine, index=False, if_exists="append")
+        except sqlalchemy.exc.IntegrityError:
+            pass  # If played_at already exists in the table, don't insert the row
+
+
+def get_last_24h_data() -> pd.DataFrame:
     limit = 50
     now = datetime.now()
     yesterday = now - timedelta(days=1)
     song_df = get_recently_played(limit=limit, after=yesterday)
-    print(song_df)
+    return song_df
 
 
-get_last_24h_data()
+def save_last_24h_data_to_database() -> None:
+    df = get_last_24h_data()
+    save_to_database(df)
