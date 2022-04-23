@@ -125,3 +125,6 @@ def get_last_24h_data() -> pd.DataFrame:
 def save_last_24h_data_to_database() -> None:
     df = get_last_24h_data()
     save_to_database(df)
+
+
+save_last_24h_data_to_database()
