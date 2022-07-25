@@ -122,9 +122,7 @@ def get_last_24h_data() -> pd.DataFrame:
     return song_df
 
 
-def save_last_24h_data_to_database() -> None:
+def run_spotify_etl() -> None:
+    """Save last 24h data to database"""
     df = get_last_24h_data()
     save_to_database(df)
-
-
-save_last_24h_data_to_database()
