@@ -6,6 +6,7 @@ import requests
 import pandas as pd
 from dateutil import parser
 import sqlalchemy
+from sqlalchemy.exc import IntegrityError
 
 from config import REFRESH_TOKEN, AUTHORIZATION_ENCODED, DATABASE
 
@@ -57,7 +58,7 @@ def get_recently_played() -> pd.DataFrame:
         'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
         'explicit': data['track.explicit'],
         'popularity': data['track.popularity']
-    })
+    }).sort_values(by='played_at').reset_index(drop=True)
 
     logging.info('Data extracted from Spotify API')
     return song_df
@@ -88,7 +89,11 @@ def save_to_database(df: pd.DataFrame) -> None:
     logging.info('Table created or already exists')
 
     # Append dataframe to the database table
-    df.to_sql('played_tracks', con=engine, index=False, chunksize=1, if_exists='replace')
+    for i, _ in df.iterrows():
+        try:
+            df.iloc[i:i + 1].to_sql("played_tracks", con=engine, index=False, if_exists="append")
+        except IntegrityError:
+            pass  # If played_at already exists in the table, don't insert the row
     logging.info('Data appended successfully')
 
 
