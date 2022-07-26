@@ -57,7 +57,8 @@ def get_recently_played() -> pd.DataFrame:
         'album_id': data['track.album.id'],
         'album_name': data['track.album.name'],
         'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
-        'artist': data['track.album.artists'].apply(lambda i: i[0]['name'])
+        'artist': data['track.album.artists'].apply(lambda i: i[0]['name']),
+        'context': data['context.type']
     }).sort_values(by='played_at').reset_index(drop=True)
 
     logging.info('Data extracted from Spotify API')
@@ -81,6 +82,7 @@ def save_to_database(df: pd.DataFrame) -> None:
         album_name VARCHAR(200),
         album_year INT(4),
         artist VARCHAR(200),
+        context VARCHAR(100),
         CONSTRAINT primary_key_constraint PRIMARY KEY (played_at)
     )
     """
@@ -101,4 +103,3 @@ def run_spotify_etl() -> None:
     """ Save recently played tracks to database """
     df = get_recently_played()
     save_to_database(df)
-run_spotify_etl()
