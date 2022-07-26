@@ -34,7 +34,7 @@ def get_headers(token: str) -> dict:
 
 def get_recently_played() -> pd.DataFrame:
     """
-    Use API endpoint /me/player/recently-played to get songs played during the last 24 hours (max 50 songs!)
+    Use API endpoint /me/player/recently-played to get tracks played during the last 24 hours (max 50 tracks!)
     API documentation: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played
     """
 
@@ -50,18 +50,18 @@ def get_recently_played() -> pd.DataFrame:
     r = requests.get(url, headers=headers)
     data = pd.json_normalize(r.json()['items'])
 
-    song_df = pd.DataFrame({
+    tracks_df = pd.DataFrame({
         'played_at': data['played_at'].apply(parser.parse),
-        'song_name': data['track.name'],
-        'artist': data['track.album.artists'].apply(lambda i: i[0]['name']),
+        'track_id': data['track.id'],
+        'track_name': data['track.name'],
+        'album_id': data['track.album.id'],
         'album_name': data['track.album.name'],
         'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
-        'explicit': data['track.explicit'],
-        'popularity': data['track.popularity']
+        'artist': data['track.album.artists'].apply(lambda i: i[0]['name'])
     }).sort_values(by='played_at').reset_index(drop=True)
 
     logging.info('Data extracted from Spotify API')
-    return song_df
+    return tracks_df
 
 
 def save_to_database(df: pd.DataFrame) -> None:
@@ -75,12 +75,12 @@ def save_to_database(df: pd.DataFrame) -> None:
     query_create_table = """
     CREATE TABLE IF NOT EXISTS played_tracks(
         played_at TIMESTAMP,
-        song_name VARCHAR(200),
-        artist VARCHAR(200),
+        track_id VARCHAR(200),
+        track_name VARCHAR(200),
+        album_id VARCHAR(200),
         album_name VARCHAR(200),
         album_year INT(4),
-        explicit BOOL,
-        popularity INT(3),
+        artist VARCHAR(200),
         CONSTRAINT primary_key_constraint PRIMARY KEY (played_at)
     )
     """
@@ -91,13 +91,14 @@ def save_to_database(df: pd.DataFrame) -> None:
     # Append dataframe to the database table
     for i, _ in df.iterrows():
         try:
-            df.iloc[i:i + 1].to_sql("played_tracks", con=engine, index=False, if_exists="append")
+            df.iloc[i:i + 1].to_sql('played_tracks', con=engine, index=False, if_exists='append')
         except IntegrityError:
             pass  # If played_at already exists in the table, don't insert the row
     logging.info('Data appended successfully')
 
 
 def run_spotify_etl() -> None:
-    """ Save recently played songs to database """
+    """ Save recently played tracks to database """
     df = get_recently_played()
     save_to_database(df)
+run_spotify_etl()
