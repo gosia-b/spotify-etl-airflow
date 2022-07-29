@@ -50,6 +50,9 @@ def get_recently_played() -> pd.DataFrame:
     r = requests.get(url, headers=headers)
     data = pd.json_normalize(r.json()['items'])
 
+    def is_nan(x):
+        return x != x
+
     tracks_df = pd.DataFrame({
         'played_at': data['played_at'].apply(parser.parse),
         'track_id': data['track.id'],
@@ -57,8 +60,10 @@ def get_recently_played() -> pd.DataFrame:
         'album_id': data['track.album.id'],
         'album_name': data['track.album.name'],
         'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
-        'artist': data['track.album.artists'].apply(lambda i: i[0]['name']),
-        'context': data['context.type']
+        'artist_name': data['track.album.artists'].apply(lambda i: i[0]['name']),
+        'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
+        'context': data['context.type'],
+        'playlist_id': data[data['context.type'] == 'playlist']['context.uri'].apply(lambda i: i if is_nan(i) else i.split(':')[-1])
     }).sort_values(by='played_at').reset_index(drop=True)
 
     logging.info('Data extracted from Spotify API')
@@ -81,8 +86,10 @@ def save_to_database(df: pd.DataFrame) -> None:
         album_id VARCHAR(200),
         album_name VARCHAR(200),
         album_year INT(4),
-        artist VARCHAR(200),
+        artist_name VARCHAR(200),
+        artist_id VARCHAR(200),
         context VARCHAR(100),
+        playlist_id VARCHAR(200),
         CONSTRAINT primary_key_constraint PRIMARY KEY (played_at)
     )
     """
