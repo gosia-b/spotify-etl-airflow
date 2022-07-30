@@ -3,7 +3,7 @@ I'd like to collect my Spotify history for analysis. Unfortunately, the Spotify 
 So in this project I use Airflow to daily collect data from the previous day and save it to a SQLite database.  
 
 <p align="center">
-<img width=70% src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/image.png">
+<img width=70% src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/spotify-etl-airflow.drawio.png">
 </p>
 
 # Reference
