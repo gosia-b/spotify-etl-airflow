@@ -24,7 +24,7 @@ For API authorization, you need `client_id`, `client_secret` and `refresh_token`
 
 ### 3. File config.py
 
-Create a file `dags/config.py` (not included in this repo because it's in `.gitignore`) with the following constants:
+Create a file `dags/config.py` (not included in this repo because it's in .gitignore) with the following constants:
 ```python
 REFRESH_TOKEN = ''
 AUTHORIZATION_ENCODED = '' 
