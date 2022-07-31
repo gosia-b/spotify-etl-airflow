@@ -43,7 +43,7 @@ The code in `dags/spotify_etl.py` uses Spotify API endpoint Get Recently Played 
 In `dags/spotify_dag.py` a very simple Airflow DAG `spotify_dag` is created. It's set to run daily at midnight and call the function `run_spotify_etl`.
 
 # Further work
-The database table created contains IDs of tracks, albums, artists and playlists. This allows to gather data from other API endpoints like Get Track or Get Artist to do interesting analyses.
+The created database table contains IDs of tracks, albums, artists and playlists. This allows to gather data from other API endpoints like Get Track or Get Artist to do interesting analyses.
 
 # Reference
 Based on videos [1](https://www.youtube.com/watch?v=dvviIUKwH7o), [2](https://www.youtube.com/watch?v=X-phMpEp6Gs),
