@@ -2,11 +2,11 @@
 Collect your history of songs played on Spotify in a database.  
 Spotify API allows to get only 50 recently played tracks so in this project I use Airflow to collect the data daily and save it to a local SQLite database.  
 
-<img src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/spotify-etl-airflow.drawio.png">
+<img src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/images/spotify-etl-airflow.drawio.png">
 
 The data is saved to a database table `played_tracks`. Here is how an example record looks like:
 <br><br>
-<img src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/example_row.png">
+<img src="https://github.com/gosia-b/spotify-etl-airflow/blob/master/images/example_row.png">
 
 # Prerequisites
 ### 1. Airflow  
