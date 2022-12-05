@@ -62,8 +62,6 @@ def get_recently_played() -> pd.DataFrame:
         'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
         'artist_name': data['track.album.artists'].apply(lambda i: i[0]['name']),
         'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
-        'context': data['context.type'],
-        'playlist_id': data[data['context.type'] == 'playlist']['context.uri'].apply(lambda i: i if is_nan(i) else i.split(':')[-1])
     }).sort_values(by='played_at').reset_index(drop=True)
 
     logging.info('Data extracted from Spotify API')
