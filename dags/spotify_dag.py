@@ -3,7 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from spotify_etl import run_spotify_etl
+from spotify_etl import extract_data, transform_data, load_data
 
 
 with DAG(
@@ -12,10 +12,22 @@ with DAG(
         schedule_interval='@daily',
         catchup=True) as dag:
 
-    run_etl = PythonOperator(
-        task_id='spotify_etl',
-        python_callable=run_spotify_etl,
+    extract = PythonOperator(
+        task_id='extract',
+        python_callable=extract_data,
         dag=dag
     )
 
-    run_etl
+    transform = PythonOperator(
+        task_id='transform',
+        python_callable=transform_data,
+        dag=dag
+    )
+
+    load = PythonOperator(
+        task_id='load',
+        python_callable=load_data,
+        dag=dag
+    )
+
+    extract >> transform >> load

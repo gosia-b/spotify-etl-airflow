@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 from datetime import datetime, timedelta
+import pickle
 
 import requests
 import pandas as pd
@@ -32,8 +33,9 @@ def get_headers(token: str) -> dict:
     return headers
 
 
-def get_recently_played() -> pd.DataFrame:
+def extract_data() -> None:
     """
+    Extract data from Spotify API
     Use API endpoint /me/player/recently-played to get tracks played during the last 24 hours (max 50 tracks!)
     API documentation: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played
     """
@@ -48,10 +50,25 @@ def get_recently_played() -> pd.DataFrame:
     token = get_api_token()
     headers = get_headers(token)
     r = requests.get(url, headers=headers)
+
+    with open('dags/api_response.pkl', 'wb') as file:
+        pickle.dump(r, file)
+
+    logging.info('Data extracted from Spotify API and saved to api_response.pkl')
+
+
+def transform_data() -> None:
+    """
+    Transform API response to a pandas DataFrame with specified columns
+    """
+
+    with open('dags/api_response.pkl', 'rb') as file:
+        r = pickle.load(file)
+
     data = pd.json_normalize(r.json()['items'])
 
     if not data.empty:
-        tracks_df = pd.DataFrame({
+        data = pd.DataFrame({
             'played_at': data['played_at'].apply(parser.parse),
             'track_id': data['track.id'],
             'track_name': data['track.name'],
@@ -62,12 +79,20 @@ def get_recently_played() -> pd.DataFrame:
             'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
         }).sort_values(by='played_at').reset_index(drop=True)
 
-        logging.info('Data extracted from Spotify API')
-        return tracks_df
-    return data
+    with open('dags/data.pkl', 'wb') as file:
+        pickle.dump(data, file)
+
+    logging.info('Data transformed and saved to data.pkl')
 
 
-def save_to_database(df: pd.DataFrame) -> None:
+def load_data() -> None:
+    """
+    Save data from DataFrame to a database
+    """
+
+    with open('dags/data.pkl', 'rb') as file:
+        df = pickle.load(file)
+
     # Connect to the database
     database_location = f'sqlite:///{DATABASE}'
     engine = sqlalchemy.create_engine(database_location)
@@ -100,11 +125,4 @@ def save_to_database(df: pd.DataFrame) -> None:
             df.iloc[i:i + 1].to_sql('played_tracks', con=engine, index=False, if_exists='append')
         except IntegrityError:
             pass  # If played_at already exists in the table, don't insert the row
-    logging.info('Data appended successfully')
-
-
-def run_spotify_etl() -> None:
-    """ Save recently played tracks to database """
-    df = get_recently_played()
-    if not df.empty:
-        save_to_database(df)
+    logging.info('Data successfully saved to a database')
