@@ -49,7 +49,7 @@ Ouput files:
 - operator `transform` creates a file `data.pkl` which is used by operator `load`
 
 # Further work
-The created database table contains IDs of tracks, albums, artists and playlists. This allows to gather data from other API endpoints like Get Track or Get Artist to do interesting analyses.
+The created database table contains IDs of tracks, albums, and artists. This allows to gather data from other API endpoints like Get Track or Get Artist to do interesting analyses.
 
 # Reference
 Based on videos [1](https://www.youtube.com/watch?v=dvviIUKwH7o), [2](https://www.youtube.com/watch?v=X-phMpEp6Gs),
