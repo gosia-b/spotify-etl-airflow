@@ -50,22 +50,21 @@ def get_recently_played() -> pd.DataFrame:
     r = requests.get(url, headers=headers)
     data = pd.json_normalize(r.json()['items'])
 
-    def is_nan(x):
-        return x != x
+    if not data.empty:
+        tracks_df = pd.DataFrame({
+            'played_at': data['played_at'].apply(parser.parse),
+            'track_id': data['track.id'],
+            'track_name': data['track.name'],
+            'album_id': data['track.album.id'],
+            'album_name': data['track.album.name'],
+            'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
+            'artist_name': data['track.album.artists'].apply(lambda i: i[0]['name']),
+            'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
+        }).sort_values(by='played_at').reset_index(drop=True)
 
-    tracks_df = pd.DataFrame({
-        'played_at': data['played_at'].apply(parser.parse),
-        'track_id': data['track.id'],
-        'track_name': data['track.name'],
-        'album_id': data['track.album.id'],
-        'album_name': data['track.album.name'],
-        'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
-        'artist_name': data['track.album.artists'].apply(lambda i: i[0]['name']),
-        'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
-    }).sort_values(by='played_at').reset_index(drop=True)
-
-    logging.info('Data extracted from Spotify API')
-    return tracks_df
+        logging.info('Data extracted from Spotify API')
+        return tracks_df
+    return data
 
 
 def save_to_database(df: pd.DataFrame) -> None:
@@ -107,4 +106,5 @@ def save_to_database(df: pd.DataFrame) -> None:
 def run_spotify_etl() -> None:
     """ Save recently played tracks to database """
     df = get_recently_played()
-    save_to_database(df)
+    if not df.empty:
+        save_to_database(df)
