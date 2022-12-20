@@ -1,2 +1,4 @@
 config.py
 spotify_db.sqlite
+dags/api_response.pkl
+dags/data.pkl
