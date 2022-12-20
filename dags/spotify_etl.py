@@ -77,6 +77,7 @@ def transform_data() -> None:
             'album_year': data['track.album.release_date'].apply(lambda i: i[:4]),
             'artist_name': data['track.album.artists'].apply(lambda i: i[0]['name']),
             'artist_id': data['track.album.artists'].apply(lambda i: i[0]['id']),
+            'context': data['context']
         }).sort_values(by='played_at').reset_index(drop=True)
 
     with open('dags/data.pkl', 'wb') as file:
@@ -110,8 +111,7 @@ def load_data() -> None:
         album_year INT(4),
         artist_name VARCHAR(200),
         artist_id VARCHAR(200),
-        context VARCHAR(100),
-        playlist_id VARCHAR(200),
+        context VARCHAR(200),
         CONSTRAINT primary_key_constraint PRIMARY KEY (played_at)
     )
     """
