@@ -3,7 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from spotify_etl import extract_data, transform_data, load_data
+from spotify_dag_tasks import extract_data, transform_data, load_data
 
 
 with DAG(
